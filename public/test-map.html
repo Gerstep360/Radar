@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Mapa</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 500px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>Test Mapa Simple</h1>
+    <div id="map"></div>
+    
+    <script>
+        // Coordenadas por defecto
+        const defaultLat = -17.8845;
+        const defaultLng = -63.3150;
+        
+        // Crear mapa
+        const map = L.map('map').setView([defaultLat, defaultLng], 14);
+        
+        // Agregar tiles
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Agregar un marcador de prueba
+        L.marker([defaultLat, defaultLng])
+         .addTo(map)
+         .bindPopup('Test Marker');
+        
+        console.log('Mapa cargado correctamente');
+    </script>
+</body>
+</html>
