@@ -52,6 +52,18 @@ class Report extends Model
         return $this->hasMany(Vote::class);
     }
 
+    // Tiene muchos comentarios
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    // Tiene muchas notificaciones
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
     // Verificar si el usuario actual ya votó
     public function hasVotedBy($userId)
     {

@@ -3,6 +3,8 @@ namespace App\Services;
 
 use App\Models\Report;
 use App\Models\Media;
+use App\Events\ReportCreated;
+use App\Events\ReportStatusChanged;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -42,7 +44,13 @@ class DenunciaService
                 $this->guardarFotos($report, $fotos);
             }
 
-            return $report->load('media');
+            // Cargar relaciones para el broadcast
+            $report->load(['media', 'category', 'user']);
+
+            // Emitir evento para actualizar el mapa en tiempo real
+            broadcast(new ReportCreated($report))->toOthers();
+
+            return $report;
         });
     }
 
@@ -69,8 +77,12 @@ class DenunciaService
 
     public function actualizarEstado(Report $report, string $nuevoEstado)
     {
+        $estadoAnterior = $report->status;
         $report->update(['status' => $nuevoEstado]);
-        // Aquí podrías disparar notificaciones al usuario: "Tu denuncia fue atendida"
+        
+        // Emitir evento para actualizar el color del marcador en tiempo real
+        broadcast(new ReportStatusChanged($report, $estadoAnterior))->toOthers();
+        
         return $report;
     }
 }

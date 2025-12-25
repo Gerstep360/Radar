@@ -20,3 +20,8 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 require __DIR__.'/denuncia/denuncia.php';
 require __DIR__.'/denuncia/vote.php';
+require __DIR__.'/map.php';
+require __DIR__.'/category.php';
+require __DIR__.'/stats.php';
+require __DIR__.'/comments.php';
+require __DIR__.'/notifications.php';

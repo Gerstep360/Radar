@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Vote;
 use App\Models\Report;
+use App\Events\VoteUpdated;
 use Illuminate\Support\Facades\DB;
 
 class VoteService
@@ -22,13 +23,18 @@ class VoteService
             if ($existingVote) {
                 // Quitar voto
                 $existingVote->delete();
-                $report->decrement('votes_count');
                 
-                return [
+                $result = [
                     'action' => 'removed',
-                    'votes_count' => $report->fresh()->votes_count,
+                    'voted' => false,
+                    'votes_count' => $report->votes()->count(),
                     'message' => 'Voto removido'
                 ];
+                
+                // 🔴 Broadcast en tiempo real
+                broadcast(new VoteUpdated($report, false, $userId))->toOthers();
+                
+                return $result;
             }
 
             // Agregar voto
@@ -36,14 +42,18 @@ class VoteService
                 'user_id' => $userId,
                 'report_id' => $report->id
             ]);
-            
-            $report->increment('votes_count');
 
-            return [
+            $result = [
                 'action' => 'added',
-                'votes_count' => $report->fresh()->votes_count,
+                'voted' => true,
+                'votes_count' => $report->votes()->count(),
                 'message' => 'Voto agregado'
             ];
+            
+            // 🔴 Broadcast en tiempo real
+            broadcast(new VoteUpdated($report, true, $userId))->toOthers();
+
+            return $result;
         });
     }
 

@@ -22,9 +22,7 @@ class Media extends Model
     protected function url(): Attribute
     {
         return Attribute::make(
-            // Simplemente devolvemos el 'path'. 
-            // Si por alguna razón es null, devolvemos cadena vacía para que no explote.
-            get: fn ($value, $attributes) => $attributes['path'] ?? '',
+            get: fn ($value, $attributes) => $attributes['file_path'] ?? '',
         );
     }
 

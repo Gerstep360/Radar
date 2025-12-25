@@ -30,7 +30,7 @@
             <div class="flex items-end justify-between px-8 h-[70px] pb-3 relative">
                 
                 {{-- 1. Explorar --}}
-                <a href="{{ route('denuncias.index') }}" wire:navigate class="flex flex-col items-center gap-1 w-16 group">
+                <a href="{{ route('denuncias.index') }}" class="flex flex-col items-center gap-1 w-16 group">
                     <div class="p-2 rounded-xl transition-colors {{ request()->routeIs('denuncias.index') ? 'bg-blue-50 text-blue-600' : 'text-slate-400' }}">
                         {{-- Icono Mapa Sólido --}}
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M15 19l-6-2.118 6-2.118V19zM15 5v8l-6 2.118V7l6-2z"/><path d="M3.508 6.726c0-.85.908-1.4 1.658-1.006l6.16 3.236A1.25 1.25 0 0 1 12 9.992v8.282c0 .85-.908 1.4-1.658 1.006l-6.16-3.236A1.25 1.25 0 0 1 3.508 15V6.726zM20.492 6.726c0-.85-.908-1.4-1.658-1.006l-6.16 3.236A1.25 1.25 0 0 0 12 9.992v8.282c0 .85.908 1.4 1.658 1.006l6.16-3.236A1.25 1.25 0 0 0 20.492 15V6.726z"/></svg>

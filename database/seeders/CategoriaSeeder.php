@@ -62,6 +62,11 @@ class CategoriaSeeder extends Seeder
                 'description' => 'Ganado en la vía, perros agresivos o fauna silvestre en riesgo.',
                 'priority' => 3,
             ],
+            [
+                'name' => 'Seguridad Ciudadana',
+                'description' => 'Robos, asaltos, zonas peligrosas que requieren patrullaje.',
+                'priority' => 5, // Máxima prioridad
+            ],
             
             // --- LA VÁLVULA DE ESCAPE ---
             [

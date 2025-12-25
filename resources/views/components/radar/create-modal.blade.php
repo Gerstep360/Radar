@@ -9,7 +9,8 @@
             document.body.style.overflow = '';
         }
      })"
-     @open-radar-modal.window="open = true" 
+     @open-radar-modal.window="open = true"
+     @close-radar-modal.window="open = false" 
      class="relative z-[999] font-sans">
 
     {{-- 1. BOTÓN FLOTANTE (TRIGGER - Solo Móvil) --}}
@@ -68,7 +69,11 @@
             {{-- BODY SCROLLABLE --}}
             <div class="flex-1 overflow-y-auto overflow-x-hidden px-6 pt-6 pb-36 space-y-8 custom-scrollbar bg-white">
                 
-                <form method="POST" action="{{ route('denuncias.store') }}" enctype="multipart/form-data" id="radar-form">
+                <form method="POST" 
+                      action="{{ route('denuncias.store') }}" 
+                      enctype="multipart/form-data" 
+                      id="radar-form"
+                      data-route="{{ route('denuncias.store') }}">
                     @csrf
 
                     {{-- 1. UBICACIÓN INTELIGENTE --}}
@@ -274,7 +279,7 @@
             }
         }
 
-        function submitRadarForm() {
+        async function submitRadarForm() {
             const forms = document.querySelectorAll('#radar-form');
             let form = null;
             
@@ -295,11 +300,70 @@
             if (!descripcion.value.trim()) { alert('Describe el problema'); descripcion.focus(); return; }
             if (!lat.value) { alert('Esperando ubicación GPS...'); return; }
 
-            // Limpiar input file si está vacío para no enviar basura
-            const fileInput = form.querySelector('input[type="file"]');
-            if (fileInput && fileInput.files.length === 0) fileInput.remove();
+            // Deshabilitar botón mientras se envía
+            const submitBtn = form.closest('.relative').querySelector('button[type="button"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg><span>Enviando...</span>';
+            }
 
-            form.submit();
+            try {
+                // Usar la ruta del atributo data (generada por Blade)
+                const url = form.dataset.route;
+                const formData = new FormData(form);
+
+                const response = await window.axios.post(url, formData, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (response.data.success) {
+                    const report = response.data.report;
+                    
+                    // 🗺️ Agregar marcador al mapa inmediatamente (sin esperar WebSocket)
+                    window.dispatchEvent(new CustomEvent('add-marker-local', {
+                        detail: report
+                    }));
+                    
+                    // 📋 Agregar card al bottom-sheet
+                    window.dispatchEvent(new CustomEvent('add-card-local', {
+                        detail: report
+                    }));
+                    
+                    // Cerrar modal
+                    window.dispatchEvent(new CustomEvent('close-radar-modal'));
+                    
+                    // Limpiar formulario
+                    form.reset();
+                    
+                    // Toast de éxito
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-green-500 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium';
+                    toast.textContent = '✅ Reporte enviado correctamente';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3000);
+                    
+                    console.log('✅ Reporte creado:', report);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                if (error.response?.status === 422) {
+                    // Errores de validación
+                    const errors = error.response.data.errors;
+                    const firstError = Object.values(errors)[0][0];
+                    alert(firstError);
+                } else {
+                    alert('Error al enviar el reporte. Intenta de nuevo.');
+                }
+            } finally {
+                // Restaurar botón
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>Enviar Reporte</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>';
+                }
+            }
         }
     </script>
 </div>
