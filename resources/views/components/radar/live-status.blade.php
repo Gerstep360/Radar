@@ -58,7 +58,11 @@
             if (!window.Echo) return;
             window.Echo.channel('radar')
                 .subscribed(() => { this.connectionState = 'connected'; })
-                .error(() => { this.connectionState = 'disconnected'; });
+                .error(() => { this.connectionState = 'disconnected'; })
+                .listen('.report.created', (e) => {
+                    console.log('🔔 Live Status: Nuevo reporte detectado', e);
+                    this.incrementCount();
+                });
                 
             if (window.Echo.connector?.pusher) {
                 window.Echo.connector.pusher.connection.bind('state_change', (s) => {

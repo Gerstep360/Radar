@@ -15,7 +15,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
 <style>
-    [x-cloak] { display: none !important; }
+    [x-cloak] {
+        display: none !important;
+    }
+
+    /* Hide Livewire's default progress bar - using custom loading overlay instead */
+    .nprogress-custom-parent,
+    #nprogress {
+        display: none !important;
+    }
 </style>
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])

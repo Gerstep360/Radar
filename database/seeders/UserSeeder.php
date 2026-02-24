@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        
+
         // Asignar rol admin si existe Spatie
         if (method_exists($admin, 'assignRole')) {
             $admin->assignRole('admin');
@@ -34,7 +34,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        
+
         if (method_exists($moderador, 'assignRole')) {
             $moderador->assignRole('moderador');
         }
@@ -72,12 +72,12 @@ class UserSeeder extends Seeder
                     'email_verified_at' => now(),
                 ]
             );
-            
+
             if (method_exists($user, 'assignRole')) {
                 $user->assignRole('ciudadano');
             }
         }
 
-        $this->command->info('✅ Se crearon ' . (count($ciudadanos) + 2) . ' usuarios de prueba');
+        $this->command->info('✅ Se crearon '.(count($ciudadanos) + 2).' usuarios de prueba');
     }
 }
