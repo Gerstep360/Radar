@@ -16,8 +16,15 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+        $misDenuncias = \App\Models\Report::with(['category', 'media', 'votes'])
+                            ->where('user_id', $user->id)
+                            ->latest()
+                            ->get();
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'misDenuncias' => $misDenuncias,
         ]);
     }
 

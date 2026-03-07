@@ -11,11 +11,19 @@ class StoreDenunciaRequest extends FormRequest
         return true; // La seguridad real va en la Policy
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'title' => strip_tags($this->title),
+            'description' => strip_tags($this->description),
+        ]);
+    }
+
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:100'],
-            'description' => ['required', 'string', 'min:20'],
+            'title' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9\s\.\,\!\?\(\)\-\_\#]+$/u'],
+            'description' => ['required', 'string', 'min:10', 'max:2000'],
             'category_id' => ['required', 'exists:categories,id'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
@@ -30,7 +38,7 @@ class StoreDenunciaRequest extends FormRequest
         return [
             'title.required' => 'El título es obligatorio',
             'description.required' => 'La descripción es obligatoria',
-            'description.min' => 'La descripción debe tener al menos 20 caracteres',
+            'description.min' => 'La descripción debe tener al menos 10 caracteres',
             'category_id.required' => 'Debes seleccionar una categoría',
             'category_id.exists' => 'La categoría seleccionada no existe',
             'latitude.required' => 'La ubicación es obligatoria',

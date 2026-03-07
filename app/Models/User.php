@@ -8,12 +8,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -24,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -48,7 +50,17 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'push_2fa_expires_at' => 'datetime',
+            'push_reset_expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the user's FCM tokens
+     */
+    public function fcmTokens()
+    {
+        return $this->hasMany(FcmToken::class);
     }
 
     /**
@@ -61,6 +73,39 @@ class User extends Authenticatable
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
+    }
+
+    /**
+     * Check if the user is an Administrator (A)
+     */
+    public function isAdmin(): bool
+    {
+        if (method_exists($this, 'hasRole') && ($this->hasRole('admin') || $this->hasRole('Administrador') || $this->hasRole('A'))) {
+            return true;
+        }
+        return in_array(strtolower($this->role), ['a', 'admin', 'administrador']);
+    }
+
+    /**
+     * Check if the user is a Moderator (M)
+     */
+    public function isModerator(): bool
+    {
+        if (method_exists($this, 'hasRole') && ($this->hasRole('moderador') || $this->hasRole('moderator') || $this->hasRole('M'))) {
+            return true;
+        }
+        return in_array(strtolower($this->role), ['m', 'moderator', 'moderador']);
+    }
+
+    /**
+     * Check if the user is a Normal User (U)
+     */
+    public function isUser(): bool
+    {
+        if (method_exists($this, 'hasRole') && ($this->hasRole('ciudadano') || $this->hasRole('user') || $this->hasRole('U'))) {
+            return true;
+        }
+        return in_array(strtolower($this->role), ['u', 'user', 'usuario', 'ciudadano']);
     }
 
 

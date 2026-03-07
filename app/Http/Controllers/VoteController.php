@@ -27,7 +27,7 @@ class VoteController extends Controller
      */
     public function toggle(Report $report): JsonResponse|RedirectResponse
     {
-        abort_unless(auth()->user()->can('crear denuncias'), 403, 'No tienes permiso para votar.');
+        // All authenticated users can vote
 
         $result = $this->voteService->toggleVote($report, auth()->id());
 

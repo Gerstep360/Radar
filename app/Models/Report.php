@@ -13,13 +13,17 @@ class Report extends Model
         'description', 
         'latitude', 
         'longitude', 
-        'status'
+        'status',
+        'admin_comment',
+        'responded_at',
+        'responded_by'
     ];
 
     // Casteo para que no tengas problemas con decimales en el JSON
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
+        'responded_at' => 'datetime',
     ];
 
     // Pertenece a un ciudadano

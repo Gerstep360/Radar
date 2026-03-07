@@ -33,7 +33,14 @@
         {{-- Contenido --}}
         <div class="mb-5">
             <h3 id="info-title" class="text-xl font-black text-slate-900 leading-tight mb-1"></h3>
-            <p id="info-desc" class="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2"></p>
+            <p id="info-desc" class="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2 mb-3"></p>
+            
+            @if(auth()->user()?->hasAnyRole(['admin', 'moderador']))
+            <div id="info-reporter-box" class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-xl border border-slate-100 w-fit">
+                <div id="info-reporter-avatar" class="w-5 h-5 rounded-md bg-indigo-100 flex items-center justify-center text-[9px] font-black text-indigo-600 uppercase"></div>
+                <span id="info-reporter-name" class="text-[10px] font-bold text-slate-500 tracking-wide"></span>
+            </div>
+            @endif
         </div>
 
         {{-- Footer --}}
@@ -133,6 +140,7 @@
                 descripcion: e.detail.descripcion,
                 estado: e.detail.estado,
                 category: e.detail.category,
+                user: e.detail.user, // Nuevo: Guardar objeto user 
                 votes_count: parseInt(e.detail.votes_count) || 0,
                 has_voted: [true, 'true', 1, '1'].includes(e.detail.has_voted),
                 lat: isNaN(lat) ? null : lat,
@@ -266,6 +274,17 @@
             document.getElementById('info-status-badge').textContent = config.text;
 
             toggleVoteStyle(data.has_voted);
+
+            // Actualizar reporte de usuario (solo si el elemento existe en el DOM)
+            const reporterName = document.getElementById('info-reporter-name');
+            const reporterAvatar = document.getElementById('info-reporter-avatar');
+            const reporterBox = document.getElementById('info-reporter-box');
+
+            if (reporterName && reporterAvatar) {
+                const name = data.user?.name || 'Ciudadano';
+                reporterName.textContent = `Reportado por ${name}`;
+                reporterAvatar.textContent = name.charAt(0);
+            }
         }
 
         function toggleVoteStyle(isVoted) {
@@ -305,6 +324,17 @@
         }
 
         function adjustPosition(sheetState) {
+            const isDesktop = window.innerWidth >= 1024; // lg breakpoint
+            
+            if (isDesktop) {
+                // En desktop: mostrar en la esquina inferior del área de mapa con margen fijo
+                container.style.bottom = '24px';
+                container.style.left = '16px';
+                container.style.right = '16px';
+                return;
+            }
+            
+            // En mobile: comportamiento original con bottom-sheet
             const navbarHeight = 80;
             const gap = 16;
             const positions = {
@@ -321,5 +351,6 @@
         }
 
         window.hideInfoPoint = hide;
+
     })();
 </script>

@@ -6,9 +6,10 @@
 </form>
 
 <div x-data="bottomSheet()" x-init="initSheet"
-    class="absolute left-0 right-0 z-20 flex flex-col bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.1)] rounded-t-[2rem] border-t border-slate-50 w-full"
+    class="absolute left-0 right-0 lg:left-1/2 lg:-translate-x-1/2 lg:max-w-7xl lg:rounded-t-[2.5rem] z-20 flex flex-col bg-white shadow-[0_-10px_60px_rgba(0,0,0,0.15)] border-t border-slate-50 w-full"
     :style="`height: 92vh; bottom: 0; transform: translateY(${currentY}px); transition: ${isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)'}`"
-    @touchstart="startDrag" @touchmove="onDrag" @touchend="endDrag">
+    @touchstart="startDrag" @touchmove="onDrag" @touchend="endDrag"
+    @filter-reports.window="filterCards($event.detail.query)">
 
     {{-- Handle --}}
     <div class="w-full flex justify-center pt-3 pb-1 cursor-pointer touch-none" @click="toggleState()">
@@ -16,22 +17,26 @@
     </div>
 
     {{-- Header --}}
-    <div class="px-6 pb-3 pt-1 flex justify-between items-end bg-white rounded-t-[2rem]">
+    <div class="px-6 pb-4 pt-1 flex justify-between items-end lg:px-10">
         <div>
-            <h2 class="text-lg font-black text-slate-800 tracking-tight">Explorar Zona</h2>
-            <p class="text-xs text-slate-400 font-bold uppercase tracking-wide">{{ $denuncias->count() }} Reportes</p>
+            <h2 class="text-xl font-black text-slate-800 tracking-tight lg:text-2xl">Explorar Zona</h2>
+            <p class="text-xs font-bold uppercase tracking-wide lg:text-sm"
+               :class="searchActive ? 'text-blue-500' : 'text-slate-400'"
+               x-text="searchActive ? filteredCount + ' resultados' : '{{ $denuncias->count() }} Reportes'"
+            ></p>
         </div>
         <button
-            class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg active:scale-95 transition-transform"
+            class="text-xs font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-xl active:scale-95 transition-transform hover:bg-blue-100 lg:text-sm"
             @click="snapTo('full')">
             Ver todos
         </button>
     </div>
 
     {{-- Lista --}}
-    <div class="flex-1 px-4 pb-24 space-y-3 bg-slate-50/50 custom-scrollbar overscroll-none"
+    <div class="flex-1 px-4 pb-32 space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 lg:px-10 bg-slate-50/50 custom-scrollbar overscroll-none"
         :class="state === 'full' ? 'overflow-y-auto' : 'overflow-hidden pointer-events-none'"
         x-ref="scrollContainer">
+
         @forelse($denuncias as $denuncia)
             <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 active:scale-[0.98] transition-transform cursor-pointer group hover:border-blue-100 relative pointer-events-auto"
                 data-denuncia-id="{{ $denuncia->id }}" data-lat="{{ $denuncia->latitude }}"
@@ -41,10 +46,9 @@
                 data-category="{{ $denuncia->category?->name ?? 'General' }}" @click="handleClickCard($el)">
 
                 {{-- Foto --}}
-                <div
-                    class="w-16 h-16 bg-slate-100 rounded-xl flex-shrink-0 overflow-hidden relative border border-slate-50">
+                <div class="w-16 h-16 bg-slate-100 rounded-xl flex-shrink-0 overflow-hidden relative border border-slate-50">
                     @if ($denuncia->media->isNotEmpty() && $denuncia->media->first()->exists())
-                        <img src="{{ Storage::url($denuncia->media->first()->url) }}" class="w-full h-full object-cover"
+                        <img src="{{ $denuncia->media->first()->url }}" class="w-full h-full object-cover"
                             loading="lazy">
                     @else
                         <div class="w-full h-full flex items-center justify-center text-slate-300">
@@ -72,14 +76,12 @@
                 {{-- BOTÓN VOTO DIRECTO --}}
                 <button @click.stop="vote({{ $denuncia->id }}, $el)"
                     class="absolute right-3 bottom-3 p-2 rounded-full hover:bg-slate-50 active:scale-75 transition-all z-10 flex items-center gap-1 group/heart border border-transparent">
-                    {{-- Icono Corazón (Rojo si votado, Gris si no) --}}
                     <svg class="w-4 h-4 transition-colors duration-300 {{ $denuncia->has_voted ? 'text-red-500 fill-current' : 'text-slate-300' }}"
                         fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
                             clip-rule="evenodd" />
                     </svg>
-                    {{-- Contador --}}
                     <span
                         class="text-xs font-bold transition-colors duration-300 {{ $denuncia->has_voted ? 'text-red-500' : 'text-slate-400' }}">
                         {{ $denuncia->votes_count ?? 0 }}
@@ -103,12 +105,10 @@
                     startY: 0,
                     currentY: 0,
                     startYWhenDragStarted: 0,
-                    positions: {
-                        min: 0,
-                        half: 0,
-                        full: 0
-                    },
+                    positions: { min: 0, half: 0, full: 0 },
                     screenH: 0,
+                    searchActive: false,
+                    filteredCount: 0,
 
                     initSheet() {
                         this.calculatePositions();
@@ -127,6 +127,27 @@
                         window.addEventListener('close-info-point', () => {
                             if (this.state === 'min') this.snapTo('half');
                         });
+
+                        window.addEventListener('add-card-local', (e) => {
+                            this.addNewCard(e.detail);
+                        });
+
+                        // Sincrización en tiempo real vía WebSockets (Echo)
+                        if (window.Echo) {
+                            window.Echo.channel('radar')
+                                .listen('.report.created', (e) => {
+                                    // Evitar duplicados si ya lo añadimos localmente
+                                    const reportId = e.report?.id || e.id;
+                                    const reportData = e.report || e;
+                                    
+                                    if (!reportId) return;
+
+                                    const existing = document.querySelector(`[data-denuncia-id="${reportId}"]`);
+                                    if (!existing) {
+                                        this.addNewCard(reportData);
+                                    }
+                                });
+                        }
 
                         window.addEventListener('vote-updated', (e) => {
                             const card = document.querySelector(`[data-denuncia-id="${e.detail.report_id}"]`);
@@ -162,11 +183,30 @@
                         this.$watch('state', value => {
                             window.bottomSheetState = value;
                             window.dispatchEvent(new CustomEvent('bottom-sheet-state', {
-                                detail: {
-                                    state: value
-                                }
+                                detail: { state: value }
                             }));
                         });
+                    },
+
+                    filterCards(query) {
+                        const cards = document.querySelectorAll('[data-denuncia-id]');
+                        if (!query || query.trim() === '') {
+                            this.searchActive = false;
+                            cards.forEach(card => card.style.display = '');
+                            return;
+                        }
+                        this.searchActive = true;
+                        this.filteredCount = 0;
+                        const q = query.toLowerCase().trim();
+                        cards.forEach(card => {
+                            const titulo = (card.dataset.titulo || '').toLowerCase();
+                            const desc = (card.dataset.descripcion || '').toLowerCase();
+                            const matches = titulo.includes(q) || desc.includes(q);
+                            card.style.display = matches ? '' : 'none';
+                            if (matches) this.filteredCount++;
+                        });
+                        // Abrir el sheet para mostrar resultados
+                        if (this.state === 'min') this.snapTo('half');
                     },
 
                     calculatePositions() {
@@ -271,6 +311,11 @@
                         const id = parseInt(cardEl.dataset.denunciaId);
                         const lat = parseFloat(cardEl.dataset.lat);
                         const lng = parseFloat(cardEl.dataset.lng);
+                        
+                        if (isNaN(lat) || isNaN(lng)) {
+                            console.warn('Click en Card: Coordenadas NaN para id:', id, { lat: cardEl.dataset.lat, lng: cardEl.dataset.lng });
+                            return;
+                        }
                         const titulo = cardEl.dataset.titulo;
                         const descripcion = cardEl.dataset.descripcion;
                         const estado = cardEl.dataset.estado;
@@ -282,20 +327,18 @@
 
                         setTimeout(() => {
                             window.dispatchEvent(new CustomEvent('fly-to-map', {
-                                detail: {
-                                    id,
-                                    lat,
-                                    lng,
-                                    titulo,
-                                    descripcion,
-                                    estado,
-                                    votes_count,
-                                    category,
-                                    has_voted
-                                }
+                                detail: { id, lat, lng, titulo, descripcion, estado, votes_count, category, has_voted }
                             }));
+
+                            @if(auth()->user()->hasAnyRole(['admin', 'moderador']))
+                            // Panel de moderación: emitir evento con datos del reporte
+                            window.dispatchEvent(new CustomEvent('report-selected-for-mod', {
+                                detail: { id, titulo, descripcion, status: estado, category }
+                            }));
+                            @endif
                         }, 150);
                     },
+
 
                     async vote(id, btnElement) {
                         const icon = btnElement.querySelector('svg');
@@ -372,6 +415,76 @@
                             }
                             countSpan.textContent = prevCount;
                         }
+                    },
+
+                    addNewCard(report) {
+                        const container = this.$refs.scrollContainer;
+                        if (!container) return;
+
+                        // Crear el HTML de la card (simplificado pero funcional)
+                        const card = document.createElement('div');
+                        card.className = 'bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 active:scale-[0.98] transition-transform cursor-pointer group hover:border-blue-100 relative pointer-events-auto transition-all duration-500 transform translate-y-4 opacity-0';
+                        
+                        // Determinar la foto (si existe)
+                        let photoHtml = `<div class="w-full h-full flex items-center justify-center text-slate-300">
+                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>`;
+                        
+                        if (report.media && report.media.length > 0) {
+                            // Usar directamente la URL que viene del servidor (ya debería ser pública)
+                            const photoUrl = report.media[0].url || `/storage/${report.media[0].file_path}`;
+                            photoHtml = `<img src="${photoUrl}" class="w-full h-full object-cover" loading="lazy">`;
+                        }
+
+                        card.setAttribute('data-denuncia-id', report.id);
+                        card.setAttribute('data-lat', report.latitude);
+                        card.setAttribute('data-lng', report.longitude);
+                        card.setAttribute('data-titulo', report.title);
+                        card.setAttribute('data-descripcion', report.description);
+                        card.setAttribute('data-estado', report.status);
+                        card.setAttribute('data-category', report.category?.name || 'General');
+
+                        card.innerHTML = `
+                            <div class="w-16 h-16 bg-slate-100 rounded-xl flex-shrink-0 overflow-hidden relative border border-slate-50">
+                                ${photoHtml}
+                            </div>
+                            <div class="flex-1 min-w-0 flex flex-col justify-center pr-10">
+                                <h3 class="font-bold text-slate-800 text-sm truncate">${report.title}</h3>
+                                <p class="text-[10px] text-slate-500 line-clamp-1 mt-0.5">${report.description}</p>
+                                <div class="flex items-center justify-between mt-1.5">
+                                    <span class="text-[9px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">Justo ahora</span>
+                                </div>
+                            </div>
+                            <button class="absolute right-3 bottom-3 p-2 rounded-full hover:bg-slate-50 active:scale-75 transition-all z-10 flex items-center gap-1 group/heart border border-transparent">
+                                <svg class="w-4 h-4 transition-colors duration-300 text-slate-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                                </svg>
+                                <span class="text-xs font-bold transition-colors duration-300 text-slate-400">0</span>
+                            </button>
+                            <div class="absolute top-2 right-2 flex gap-1">
+                                <span class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                            </div>
+                        `;
+
+                        card.onclick = () => this.handleClickCard(card);
+                        
+                        // Añadir al inicio de la lista
+                        if (container.firstChild) {
+                            container.insertBefore(card, container.firstChild);
+                        } else {
+                            container.appendChild(card);
+                        }
+
+                        // Animación de entrada
+                        setTimeout(() => {
+                            card.classList.remove('translate-y-4', 'opacity-0');
+                        }, 50);
+
+                        // Si la lista estaba vacía, quitar mensaje
+                        const emptyMsg = container.querySelector('.py-10');
+                        if (emptyMsg) emptyMsg.remove();
                     }
                 }
             };

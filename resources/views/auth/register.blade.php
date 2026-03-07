@@ -1,52 +1,49 @@
 <x-guest-layout>
+    <x-slot name="headerDescription">Crea tu cuenta para reportar</x-slot>
+
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        <div class="form-group">
+            <label for="name" class="form-label">Nombre completo</label>
+            <input id="name" name="name" type="text" value="{{ old('name') }}" required autofocus
+                autocomplete="name" placeholder="Juan Perez" class="form-input" />
+            @error('name')
+                <p class="error-text">{{ $message }}</p>
+            @enderror
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div class="form-group">
+            <label for="email" class="form-label">Correo electronico</label>
+            <input id="email" name="email" type="email" value="{{ old('email') }}" required
+                autocomplete="username" placeholder="tu@email.com" class="form-input" />
+            @error('email')
+                <p class="error-text">{{ $message }}</p>
+            @enderror
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div class="form-group">
+            <label for="password" class="form-label">Contrasena</label>
+            <input id="password" name="password" type="password" required autocomplete="new-password"
+                placeholder="Minimo 8 caracteres" class="form-input" />
+            @error('password')
+                <p class="error-text">{{ $message }}</p>
+            @enderror
         </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        <div class="form-group">
+            <label for="password_confirmation" class="form-label">Confirmar contrasena</label>
+            <input id="password_confirmation" name="password_confirmation" type="password" required
+                autocomplete="new-password" placeholder="Repite tu contrasena" class="form-input" />
+            @error('password_confirmation')
+                <p class="error-text">{{ $message }}</p>
+            @enderror
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
+        <button type="submit" class="btn-submit">Crear mi cuenta</button>
     </form>
+
+    <div class="auth-footer">
+        Ya tienes cuenta? <a href="{{ route('login') }}">Inicia sesion</a>
+    </div>
 </x-guest-layout>

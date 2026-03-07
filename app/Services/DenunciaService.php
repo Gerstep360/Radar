@@ -18,11 +18,10 @@ class DenunciaService
             return Report::with(['category', 'user', 'media'])->latest()->paginate(15);
         }
 
-        // Ciudadanos solo ven las suyas
-        return Report::where('user_id', $usuario->id)
-            ->with(['category', 'media'])
+        // Todos los usuarios pueden ver todos los reportes en el mapa y radar
+        return Report::with(['category', 'user', 'media'])
             ->latest()
-            ->paginate(10);
+            ->paginate(15);
     }
 
     public function crearDenuncia(array $data): Report
@@ -33,7 +32,10 @@ class DenunciaService
             unset($data['fotos']);
 
             // Asignar usuario y estado inicial
-            $data['user_id'] = Auth::id();
+            // user_id viene del controller ($request->user()->id) para compatibilidad con Sanctum
+            if (!isset($data['user_id'])) {
+                $data['user_id'] = Auth::id();
+            }
             $data['status'] = 'pendiente';
 
             // Crear el reporte
@@ -82,6 +84,31 @@ class DenunciaService
         
         // Emitir evento para actualizar el color del marcador en tiempo real
         broadcast(new ReportStatusChanged($report, $estadoAnterior))->toOthers();
+
+        // Notificar al dueño del reporte sobre el cambio de estado
+        $statusLabels = [
+            'pendiente' => 'Pendiente',
+            'en_revision' => 'En revisión',
+            'atendido' => 'Atendido',
+            'desestimado' => 'Desestimado',
+        ];
+
+        $newLabel = $statusLabels[$nuevoEstado] ?? $nuevoEstado;
+
+        $notification = \App\Models\Notification::create([
+            'user_id' => $report->user_id,
+            'report_id' => $report->id,
+            'type' => 'status_change',
+            'title' => 'Estado de tu denuncia actualizado',
+            'message' => "Tu denuncia \"{$report->title}\" cambió a: {$newLabel}.",
+            'data' => [
+                'old_status' => $estadoAnterior,
+                'new_status' => $nuevoEstado,
+                'report_title' => $report->title,
+            ],
+        ]);
+
+        event(new \App\Events\NotificationCreated($notification));
         
         return $report;
     }

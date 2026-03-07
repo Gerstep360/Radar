@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute; // <--- No olvides importar es
 class Media extends Model
 {
     protected $fillable = ['report_id', 'file_path'];
+    protected $appends = ['url'];
 
     public function report()
     {
@@ -16,13 +17,29 @@ class Media extends Model
     }
 
     /**
-     * Obtiene la URL pública de la foto
+     * Obtiene la URL pública de la foto.
+     * Usa url() de config para consistencia (APP_URL).
      */
-
     protected function url(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $attributes) => $attributes['file_path'] ?? '',
+            get: function ($value, $attributes) {
+                if (empty($attributes['file_path'])) {
+                    return '';
+                }
+
+                // Intentar usar el host del request actual (funciona tanto para localhost como IP de red)
+                try {
+                    $request = request();
+                    if ($request) {
+                        return $request->getSchemeAndHttpHost() . '/storage/' . $attributes['file_path'];
+                    }
+                } catch (\Throwable $e) {
+                    // fallback
+                }
+
+                return Storage::disk('public')->url($attributes['file_path']);
+            },
         );
     }
 

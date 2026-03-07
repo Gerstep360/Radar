@@ -1,18 +1,13 @@
 {{-- 
     Componente: <x-radar.live-status>
-    
-    Barra de estado EN VIVO con indicador de conexión WebSocket
-    
-    Props:
-    - title: Título a mostrar (default: "Radar La Guardia")
-    - count: Número inicial de reportes (default: 0)
-    - icon: Icono a usar: "radar", "map", "alert" (default: "radar")
+    Barra de estado EN VIVO con búsqueda funcional
 --}}
 
 @props([
     'title' => 'Radar La Guardia',
     'count' => 0,
-    'icon' => 'radar'
+    'icon' => 'radar',
+    'sidebar' => false,
 ])
 
 <div 
@@ -21,6 +16,8 @@
         reportCount: {{ $count }},
         justUpdated: false,
         checkInterval: null,
+        searchOpen: false,
+        searchQuery: '',
         
         get isConnected() { return this.connectionState === 'connected'; },
         get isConnecting() { return this.connectionState === 'connecting'; },
@@ -34,11 +31,23 @@
         init() {
             this.checkEchoConnection();
             this.checkInterval = setInterval(() => this.checkEchoConnection(), 3000);
-            
             window.addEventListener('add-card-local', () => this.incrementCount());
             window.addEventListener('report-created', () => this.incrementCount());
-            
             if (window.Echo) this.subscribeToChannel();
+        },
+        
+        toggleSearch() {
+            this.searchOpen = !this.searchOpen;
+            if (this.searchOpen) {
+                this.$nextTick(() => this.$refs.searchInput?.focus());
+            } else {
+                this.searchQuery = '';
+                window.dispatchEvent(new CustomEvent('filter-reports', { detail: { query: '' } }));
+            }
+        },
+        
+        doSearch() {
+            window.dispatchEvent(new CustomEvent('filter-reports', { detail: { query: this.searchQuery } }));
         },
         
         checkEchoConnection() {
@@ -60,10 +69,8 @@
                 .subscribed(() => { this.connectionState = 'connected'; })
                 .error(() => { this.connectionState = 'disconnected'; })
                 .listen('.report.created', (e) => {
-                    console.log('🔔 Live Status: Nuevo reporte detectado', e);
                     this.incrementCount();
                 });
-                
             if (window.Echo.connector?.pusher) {
                 window.Echo.connector.pusher.connection.bind('state_change', (s) => {
                     this.connectionState = s.current === 'connected' ? 'connected' 
@@ -78,32 +85,26 @@
             setTimeout(() => this.justUpdated = false, 300);
         }
     }"
-    {{ $attributes->merge(['class' => 'pointer-events-none']) }}
+    {{ $attributes->merge(['class' => $sidebar ? '' : 'pointer-events-none']) }}
 >
-    <div class="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-2.5 flex items-center gap-3 pointer-events-auto max-w-md mx-auto transition-all active:scale-[0.98]">
+    <div class="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-2.5 flex items-center gap-3 pointer-events-auto max-w-md mx-auto transition-all">
         
-        {{-- Icono --}}
-        <div class="h-10 w-10 bg-slate-100/80 rounded-xl flex items-center justify-center text-slate-500 shadow-sm border border-white/50">
-            @if($icon === 'radar')
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            @elseif($icon === 'map')
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
-                </svg>
-            @elseif($icon === 'alert')
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                </svg>
-            @endif
-        </div>
+        {{-- Botón de Búsqueda (FUNCIONAL) --}}
+        <button 
+            @click="toggleSearch()"
+            class="h-10 w-10 rounded-xl flex items-center justify-center shadow-sm border transition-colors shrink-0"
+            :class="searchOpen ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-100/80 border-white/50 text-slate-500 hover:bg-slate-200'"
+            title="Buscar reportes"
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </button>
 
-        {{-- Título y Estado de Conexión --}}
-        <div class="flex-1 min-w-0">
+        {{-- Título y Estado (oculto al buscar) --}}
+        <div class="flex-1 min-w-0" x-show="!searchOpen" x-transition.opacity>
             <h1 class="text-sm font-black text-slate-800 truncate">{{ $title }}</h1>
             <div class="flex items-center gap-1.5 mt-0.5">
-                {{-- Indicador de conexión dinámico --}}
                 <template x-if="isConnected">
                     <span class="relative flex h-2 w-2">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -121,23 +122,31 @@
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                     </span>
                 </template>
-                
-                {{-- Texto de estado --}}
                 <p 
                     class="text-[10px] font-bold uppercase tracking-wider"
-                    :class="{
-                        'text-green-600': isConnected,
-                        'text-yellow-600': isConnecting,
-                        'text-red-500': isDisconnected
-                    }"
+                    :class="{ 'text-green-600': isConnected, 'text-yellow-600': isConnecting, 'text-red-500': isDisconnected }"
                     x-text="statusText"
                 ></p>
             </div>
         </div>
 
+        {{-- Campo de búsqueda (visible al buscar) --}}
+        <div class="flex-1 min-w-0" x-show="searchOpen" x-transition.opacity>
+            <input 
+                x-ref="searchInput"
+                x-model="searchQuery"
+                @input.debounce.300ms="doSearch()"
+                @keydown.escape="toggleSearch()"
+                type="text" 
+                placeholder="Buscar reportes..." 
+                class="w-full text-sm font-medium text-slate-700 bg-transparent outline-none placeholder:text-slate-400"
+            >
+            <p class="text-[10px] text-slate-400 mt-0.5" x-text="searchQuery ? 'Filtrando resultados...' : 'Escribe para buscar'"></p>
+        </div>
+
         {{-- Contador Total --}}
         <div 
-            class="h-10 w-10 bg-[#0f172a] rounded-full flex items-center justify-center text-white shadow-md shadow-slate-900/20 border border-slate-700 transition-transform"
+            class="h-10 w-10 bg-[#0f172a] rounded-full flex items-center justify-center text-white shadow-md border border-slate-700 transition-transform shrink-0"
             :class="{ 'scale-110': justUpdated }"
         >
             <span class="text-xs font-bold" x-text="reportCount"></span>

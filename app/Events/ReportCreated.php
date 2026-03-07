@@ -7,17 +7,46 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class ReportCreated implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets;
 
-    public Report $report;
+    // Pre-calculamos todos los datos para evitar queries al serializar
+    public int $reportId;
+    public string $title;
+    public string $description;
+    public float $latitude;
+    public float $longitude;
+    public string $status;
+    public ?array $category;
+    public ?array $user;
+    public array $media;
+    public string $createdAt;
 
     public function __construct(Report $report)
     {
-        $this->report = $report->load('category', 'user');
+        $report->load('category', 'user', 'media');
+
+        $this->reportId = $report->id;
+        $this->title = $report->title;
+        $this->description = $report->description;
+        $this->latitude = $report->latitude;
+        $this->longitude = $report->longitude;
+        $this->status = $report->status;
+        $this->category = $report->category ? [
+            'id' => $report->category->id,
+            'name' => $report->category->name,
+        ] : null;
+        $this->user = $report->user ? [
+            'id' => $report->user->id,
+            'name' => $report->user->name,
+        ] : null;
+        $this->media = $report->media->map(fn($m) => [
+            'id' => $m->id,
+            'url' => $m->url,
+        ])->toArray();
+        $this->createdAt = $report->created_at?->toIso8601String() ?? now()->toIso8601String();
     }
 
     /**
@@ -44,22 +73,18 @@ class ReportCreated implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'id' => $this->report->id,
-            'title' => $this->report->title,
-            'description' => $this->report->description,
-            'latitude' => $this->report->latitude,
-            'longitude' => $this->report->longitude,
-            'status' => $this->report->status,
-            'category' => [
-                'id' => $this->report->category?->id,
-                'name' => $this->report->category?->name,
-            ],
-            'user' => [
-                'id' => $this->report->user?->id,
-                'name' => $this->report->user?->name,
-            ],
+            'id' => $this->reportId,
+            'title' => $this->title,
+            'description' => $this->description,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'status' => $this->status,
+            'category' => $this->category,
+            'user' => $this->user,
             'votes_count' => 0,
-            'created_at' => $this->report->created_at->toISOString(),
+            'comments_count' => 0,
+            'media' => $this->media,
+            'created_at' => $this->createdAt,
         ];
     }
 }

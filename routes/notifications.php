@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     // Listar notificaciones
     Route::get('/notificaciones', [NotificationController::class, 'index'])
         ->name('notifications.index');

@@ -28,7 +28,7 @@ class PermissionSeeder extends Seeder
         $ciudadano->givePermissionTo(['ver denuncias', 'crear denuncias']);
 
         $moderador = Role::firstOrCreate(['name' => 'moderador']);
-        $moderador->givePermissionTo(['ver denuncias', 'gestionar denuncias']);
+        $moderador->givePermissionTo(['ver denuncias', 'gestionar denuncias', 'crear denuncias']);
 
         $admin = Role::firstOrCreate(['name' => 'admin']);
         $admin->givePermissionTo(Permission::all());

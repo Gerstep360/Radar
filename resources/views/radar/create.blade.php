@@ -327,21 +327,25 @@
 
         // Validación Submit
         document.querySelector('form').addEventListener('submit', function(e) {
-            // Actualizar input de archivos con el array en memoria
-            const dt = new DataTransfer();
-            selectedFiles.forEach(file => dt.items.add(file));
-            document.getElementById('file-input').files = dt.files;
-
             const category = document.getElementById('category_id').value;
             const title = document.getElementById('title').value;
             const desc = document.getElementById('description').value;
             const lat = document.querySelector('input[name="latitude"]')?.value;
 
-            if(!category || !title || !desc || !lat) {
-                e.preventDefault();
-                alert('Por favor completa todos los campos requeridos y marca la ubicación.');
-                return false;
-            }
+            if(!category) { e.preventDefault(); alert('⚠️ Por favor selecciona una categoría.'); return; }
+            if(!title.trim()) { e.preventDefault(); alert('⚠️ Por favor escribe un título.'); return; }
+            if(desc.trim().length < 20) { e.preventDefault(); alert('⚠️ La descripción debe tener al menos 20 caracteres.'); return; }
+            if(!lat) { e.preventDefault(); alert('🛰️ Por favor marca la ubicación en el mapa.'); return; }
+
+            // Actualizar input de archivos con el array en memoria
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            document.getElementById('file-input').files = dt.files;
+            
+            // Cambiar estado del botón
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg><span>Enviando...</span>';
         });
 
         // Progreso
@@ -349,7 +353,7 @@
             const steps = {
                 category: !!document.getElementById('category_id').value,
                 title: !!document.getElementById('title').value.trim(),
-                description: document.getElementById('description').value.trim().length >= 10,
+                description: document.getElementById('description').value.trim().length >= 20,
                 location: !!document.querySelector('input[name="latitude"]')?.value,
                 photos: selectedFiles.length > 0
             };

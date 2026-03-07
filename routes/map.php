@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth'])->prefix('mapa')->name('map.')->group(function () {
+Route::middleware(['auth', 'throttle:60,1'])->prefix('mapa')->name('map.')->group(function () {
     Route::get('/puntos', [MapController::class, 'points'])->name('points');
     Route::get('/puntos/{id}', [MapController::class, 'point'])->name('point');
     Route::get('/area', [MapController::class, 'pointsInBounds'])->name('bounds');

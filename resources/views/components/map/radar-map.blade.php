@@ -5,6 +5,7 @@
     'lngName' => 'longitude',
     'height' => 'h-80',
     'apiEndpoint' => route('map.points'),
+    'canSeeReporter' => auth()->user()?->hasAnyRole(['admin', 'moderador']),
 ])
 
 @php
@@ -37,7 +38,7 @@
 
     {{-- UI MODO EDICIÓN --}}
     @if ($editable)
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-[400]">
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-[5000]">
             <div class="relative -mt-8 transition-transform duration-200" :class="{ '-translate-y-2': isMoving }">
                 <svg class="w-12 h-12 drop-shadow-2xl text-blue-600 transition-all" viewBox="0 0 24 24"
                     fill="currentColor">
@@ -90,7 +91,7 @@
     </button>
 
     {{-- BOTÓN RECENTRAR --}}
-    <button x-show="!isMoving && userLocation" @click="flyToUser()" style="display: none;"
+    <button x-show="!isMoving && userLocation" @click="locateUser()" style="display: none;"
         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-y-10 opacity-0"
         x-transition:enter-end="translate-y-0 opacity-100"
         class="absolute bottom-24 right-4 z-[400] h-12 w-12 bg-white text-slate-700 flex items-center justify-center rounded-2xl shadow-xl border border-slate-100 hover:text-blue-600 active:scale-90 transition-all duration-300">
@@ -155,9 +156,25 @@
             }
         }
 
-        /* Fix para Google Maps attribution */
         .leaflet-bottom.leaflet-right {
             display: none !important;
+        }
+
+        /* Estilización moderna de popups Leaflet para Radar */
+        .custom-radar-popup .leaflet-popup-content-wrapper {
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+            border-radius: 1rem;
+        }
+        .custom-radar-popup .leaflet-popup-tip-container {
+            width: 30px;
+            height: 15px;
+            margin-left: -15px;
+        }
+        .custom-radar-popup .leaflet-popup-tip {
+            background: white;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
         }
     </style>
 @endonce
@@ -167,12 +184,35 @@
         return {
             map: null,
             isMoving: false,
-            userLocation: null,
+            userLocation: false,
             markersLayer: null,
             currentLayer: 'roadmap', // roadmap | satellite
             layers: {},
 
             init() {
+                // Parche de seguridad global para flyTo (evitar NaN)
+                if (window.L && !window.L._flyToPatched) {
+                    const originalFlyTo = L.Map.prototype.flyTo;
+                    L.Map.prototype.flyTo = function(center, zoom, options) {
+                        try {
+                            let lat, lng;
+                            if (Array.isArray(center)) {
+                                [lat, lng] = center;
+                            } else if (center && typeof center === 'object') {
+                                lat = center.lat ?? center.latitude;
+                                lng = center.lng ?? center.longitude;
+                            }
+
+                            if (isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
+                                console.error('📍 Leaflet flyTo bloqueado: Coordenadas NaN detectadas', { center, zoom });
+                                return this;
+                            }
+                        } catch (e) { console.error('Error en parche flyTo:', e); }
+                        return originalFlyTo.apply(this, arguments);
+                    };
+                    window.L._flyToPatched = true;
+                }
+
                 const checkReady = setInterval(() => {
                     if (window.L && document.getElementById(config.mapId)) {
                         clearInterval(checkReady);
@@ -198,6 +238,28 @@
 
                 window.addEventListener('add-marker-local', (e) => {
                     this.addNewMarker(e.detail);
+                });
+
+                // Escucha de evento externo (Ej: Livewire) para reemplazar los marcadores filtrados
+                window.addEventListener('map-refresh-data', (e) => {
+                    if(this.markersLayer) {
+                        this.markersLayer.clearLayers();
+                        // En Livewire 3, los datos despachados llegan en e.detail (o e.detail[0])
+                        const points = Array.isArray(e.detail) && Array.isArray(e.detail[0]) ? e.detail[0] : (e.detail.points || e.detail);
+                        if (Array.isArray(points)) {
+                            let bounds = L.latLngBounds();
+                            points.forEach((point, index) => {
+                                this.createMarker(point, index * 5);
+                                if(point.latitude && point.longitude) {
+                                    bounds.extend([parseFloat(point.latitude), parseFloat(point.longitude)]);
+                                }
+                            });
+                            // Re-encuadrar el mapa si hay marcadores (Evita que el mapa global se esconda bajo el menú en admin)
+                            if(bounds.isValid() && this.map) {
+                                this.map.fitBounds(bounds, { paddingBottomRight: [50, 50], paddingTopLeft: [380, 50], maxZoom: 16 });
+                            }
+                        }
+                    }
                 });
             },
 
@@ -258,7 +320,9 @@
                 setTimeout(() => {
                     if (this.$refs.skeleton) {
                         this.$refs.skeleton.style.opacity = '0';
-                        setTimeout(() => this.$refs.skeleton.remove(), 500);
+                        setTimeout(() => {
+                            if (this.$refs.skeleton) this.$refs.skeleton.remove();
+                        }, 500);
                     }
                 }, 300);
 
@@ -267,6 +331,22 @@
                 }
 
                 window.addEventListener(`recenter-map-${config.mapId}`, () => this.locateUser());
+                window.addEventListener('map-refresh', () => {
+                    if (this.map) {
+                        // Intentos múltiples de invalidateSize para asegurar que capte el tamaño real tras transiciones
+                        [10, 100, 300, 600].forEach(delay => {
+                            setTimeout(() => this.map.invalidateSize(), delay);
+                        });
+                        // Solo recentrar si no tenemos una ubicación ya fijada o si es la primera carga
+                        if (config.editable && !this.userLocation) this.locateUser();
+                    }
+                });
+                window.addEventListener('map-set-view', (e) => {
+                    if (this.map && e.detail.lat && e.detail.lng) {
+                        this.map.setView([e.detail.lat, e.detail.lng], 16);
+                        this.userLocation = true;
+                    }
+                });
                 window.addEventListener('close-info-point', () => {
                     if (this.map) this.map.zoomOut(1);
                 });
@@ -354,21 +434,126 @@
                 const icon = L.divIcon({
                     className: 'bg-transparent',
                     html: iconHtml,
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8]
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12],
+                    popupAnchor: [0, -12]
                 });
 
                 const marker = L.marker([lat, lng], {
-                    icon
+                    icon,
+                    id: point.id 
                 }).addTo(this.markersLayer);
 
+                // --- CRAFT THE POPUP BUBBLE HTML ---
+                // Resolve Image URL safely for storage vs external (like Unsplash)
+                let imageUrl = '';
+                if (point.image_url) {
+                    imageUrl = point.image_url.startsWith('http') ? point.image_url : '/storage/' + point.image_url.replace(/^\/?storage\//, '');
+                }
+
+                const username = point.user?.name || 'Ciudadano';
+                const canSeeReporter = {{ var_export($canSeeReporter, true) }};
+
+                const popupContent = `
+                    <div class="w-64 -m-4 overflow-hidden rounded-2xl bg-white shadow-xl shadow-slate-900/10 border border-slate-100 flex flex-col cursor-pointer hover:shadow-2xl transition-all duration-300" onclick="Livewire.dispatch('open-report-detail', {id: ${point.id}})">
+                        ${imageUrl ? `<div class="h-32 w-full bg-slate-100 relative group overflow-hidden">
+                            <img src="${imageUrl}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Evidencia">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <span class="absolute bottom-2 left-2 text-[10px] uppercase tracking-widest font-black text-white bg-${colorClass.replace('bg-','').replace('text-','')} px-2 py-0.5 rounded-full shadow-sm">${estado}</span>
+                        </div>` : `<div class="p-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                            <span class="text-[10px] uppercase tracking-widest font-black text-slate-500">${categoryName}</span>
+                            <span class="w-2.5 h-2.5 rounded-full ${colorClass}"></span>
+                        </div>`}
+                        <div class="p-4">
+                            ${imageUrl ? `<div class="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-1">${categoryName}</div>` : ''}
+                             <h4 class="font-bold text-slate-800 text-sm leading-tight mb-2 truncate">${point.title || 'Reporte de Ciudadano'}</h4>
+                            <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-1">${point.description || 'Sin detalle provisto.'}</p>
+                            
+                            ${canSeeReporter ? `
+                                <div class="flex items-center gap-1.5 mb-3">
+                                    <div class="w-4 h-4 rounded-md bg-slate-100 flex items-center justify-center text-[8px] font-black text-slate-500 uppercase">
+                                        ${username.charAt(0)}
+                                    </div>
+                                    <span class="text-[10px] font-bold text-slate-400">Por ${username}</span>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="flex items-center justify-between mt-auto">
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] uppercase text-slate-400 font-bold mb-0.5">Apoyos</span>
+                                    <div class="flex items-center gap-1 text-slate-700 font-bold text-xs">
+                                        <svg class="w-3.5 h-3.5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"></path></svg>
+                                        ${point.votes_count || 0}
+                                    </div>
+                                </div>
+                                <button class="bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">
+                                    Ver Detalle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Configurar el popup personalizado
+                const customPopup = L.popup({
+                    closeButton: false,
+                    className: 'custom-radar-popup',
+                    minWidth: 256,
+                    maxWidth: 256,
+                    offset: [0, 5]
+                }).setContent(popupContent);
+
+                // marker.bindPopup(customPopup); // ELIMINADO: Evitar múltiples vistas previas. Usaremos info-point.
+
                 marker.on('click', () => {
+                    // 🎯 CONSOLIDACIÓN: Al hacer click, activamos info-point y mod-panel
+                    window.dispatchEvent(new CustomEvent('show-info-point', {
+                        detail: {
+                            id: point.id,
+                            lat: lat,
+                            lng: lng,
+                            titulo: point.title || 'Sin título',
+                            descripcion: point.description || 'Sin descripción.',
+                            category: categoryName,
+                            estado: estado,
+                            votes_count: point.votes_count || 0,
+                            has_voted: point.has_voted || false,
+                            user: point.user
+                        }
+                    }));
+
+                    @if(auth()->user()->hasAnyRole(['admin', 'moderador']))
+                    window.dispatchEvent(new CustomEvent('report-selected-for-mod', {
+                        detail: { 
+                            id: point.id, 
+                            titulo: point.title || 'Sin título', 
+                            descripcion: point.description || 'Sin descripción.', 
+                            status: estado, 
+                            category: categoryName 
+                        }
+                    }));
+                    @endif
+
                     window.dispatchEvent(new CustomEvent('minimize-bottom-sheet'));
-                    this.selectAndFly(point.id, lat, lng, point);
+                    
+                    // Centrar suavemente
+                    const currentZoom = this.map.getZoom();
+                    if(currentZoom < 15) {
+                        this.map.flyTo([lat, lng], 16, { animate: true, duration: 1 });
+                    } else {
+                        this.map.panTo([lat, lng], { animate: true });
+                    }
                 });
             },
 
-            selectAndFly(id, lat, lng, data) {
+            selectAndFly(id, latParam, lngParam, data) {
+                const lat = parseFloat(latParam);
+                const lng = parseFloat(lngParam);
+                
+                if (isNaN(lat) || isNaN(lng)) {
+                    console.error('selectAndFly: Lat/Lng is NaN', { latParam, lngParam, data });
+                    return;
+                }
                 const categoryName = typeof data.category === 'string' ?
                     data.category :
                     (data.category?.name || 'Reporte');
@@ -383,7 +568,8 @@
                         category: categoryName,
                         estado: data.estado || data.status || 'pendiente',
                         votes_count: data.votes_count || 0,
-                        has_voted: data.has_voted || false
+                        has_voted: data.has_voted || false,
+                        user: data.user // 🔒 Para privacidad de reporte
                     }
                 }));
 
@@ -400,11 +586,30 @@
                     this.isMoving = true;
                     setTimeout(() => this.isMoving = false, 300);
                     const c = this.map.getCenter();
-                    if (this.$refs.latInput) this.$refs.latInput.value = c.lat.toFixed(7);
-                    if (this.$refs.lngInput) this.$refs.lngInput.value = c.lng.toFixed(7);
+                    const lat = c.lat.toFixed(7);
+                    const lng = c.lng.toFixed(7);
+                    
+                    if (this.$refs.latInput) this.$refs.latInput.value = lat;
+                    if (this.$refs.lngInput) this.$refs.lngInput.value = lng;
+
+                    // Notificar a quien le interese (ej: el modal de creación)
+                    window.dispatchEvent(new CustomEvent(`map-moved-${config.mapId}`, {
+                        detail: { lat, lng }
+                    }));
+
+                    // Evento genérico para capturadores simples (como el modal)
+                    window.dispatchEvent(new CustomEvent('map-moved', {
+                        detail: { lat, lng, mapId: config.mapId }
+                    }));
                 };
                 this.map.on('moveend', updateCenter);
                 this.map.on('movestart', () => this.isMoving = true);
+                
+                // Permitir clic para mover el pin (más intuitivo)
+                this.map.on('click', (e) => {
+                    this.map.flyTo(e.latlng, this.map.getZoom());
+                });
+
                 this.locateUser();
             },
 

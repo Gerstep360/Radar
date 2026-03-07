@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     // Obtener comentarios de un reporte
     Route::get('/reportes/{report}/comentarios', [CommentController::class, 'index'])
         ->name('comments.index');

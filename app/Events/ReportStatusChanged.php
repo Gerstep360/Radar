@@ -7,25 +7,29 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class ReportStatusChanged implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets;
 
-    public Report $report;
+    public int $reportId;
+    public string $title;
     public string $oldStatus;
+    public string $newStatus;
 
     public function __construct(Report $report, string $oldStatus)
     {
-        $this->report = $report;
+        $this->reportId = $report->id;
+        $this->title = $report->title;
         $this->oldStatus = $oldStatus;
+        $this->newStatus = $report->status;
     }
 
     public function broadcastOn(): array
     {
         return [
             new Channel('radar'),
+            new Channel('report.' . $this->reportId),
         ];
     }
 
@@ -37,10 +41,10 @@ class ReportStatusChanged implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'id' => $this->report->id,
-            'title' => $this->report->title,
+            'id' => $this->reportId,
+            'title' => $this->title,
             'old_status' => $this->oldStatus,
-            'new_status' => $this->report->status,
+            'new_status' => $this->newStatus,
         ];
     }
 }

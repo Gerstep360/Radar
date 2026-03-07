@@ -7,21 +7,26 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class VoteUpdated implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets;
 
     public int $reportId;
     public int $votesCount;
     public bool $voted;
     public ?int $userId;
 
-    public function __construct(Report $report, bool $voted, ?int $userId = null)
+    /**
+     * @param Report $report
+     * @param bool   $voted     true = votó, false = quitó voto
+     * @param int|null $userId  usuario que hizo la acción
+     * @param int|null $freshCount  conteo fresco (evita re-contar en el evento)
+     */
+    public function __construct(Report $report, bool $voted, ?int $userId = null, ?int $freshCount = null)
     {
         $this->reportId = $report->id;
-        $this->votesCount = $report->votes()->count();
+        $this->votesCount = $freshCount ?? $report->votes()->count();
         $this->voted = $voted;
         $this->userId = $userId;
     }
@@ -33,6 +38,7 @@ class VoteUpdated implements ShouldBroadcastNow
     {
         return [
             new Channel('radar'),
+            new Channel('report.' . $this->reportId),
         ];
     }
 

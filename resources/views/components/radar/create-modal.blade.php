@@ -4,18 +4,32 @@
 @php
     $getIconPath = function($name) {
         $n = Str::lower($name);
-        if (Str::contains($n, ['bache', 'paviment', 'calle', 'hueco', 'asfalto'])) return 'M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z';
-        if (Str::contains($n, ['quema', 'humo', 'fuego', 'incendio', 'forestal'])) return 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z';
-        if (Str::contains($n, ['seguridad', 'robo', 'policia', 'delicuencia', 'asalto'])) return 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z';
-        if (Str::contains($n, ['alumbrado', 'luz', 'foco', 'poste', 'oscuridad'])) return 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548 5.478a1 1 0 01-.994.909H8.665a1 1 0 01-.994-.909l-.548-5.478z';
-        if (Str::contains($n, ['basura', 'limpieza', 'sucio', 'contenedor', 'residuo'])) return 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16';
-        if (Str::contains($n, ['lote', 'baldío', 'baldio', 'maleza', 'monte'])) return 'M12 19l9 2-9-18-9 18 9-2zm0 0v-8';
-        if (Str::contains($n, ['mantenimiento', 'reparacion', 'obra', 'pintura'])) return 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z';
-        if (Str::contains($n, ['drenaje', 'canal', 'agua', 'tubería', 'fuga'])) return 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z';
-        if (Str::contains($n, ['animal', 'perro', 'gato', 'suelto'])) return 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z';
+        // Emergencias y Salud
+        if (Str::contains($n, ['salud', 'médic', 'hospital', 'ambulanc', 'herido'])) return 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z';
+        if (Str::contains($n, ['fuego', 'incendio', 'quema', 'humo'])) return 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z';
+        if (Str::contains($n, ['gas', 'fuga', 'olor'])) return 'M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z';
+        if (Str::contains($n, ['cable', 'luz', 'electric', 'poste', 'alumbrado'])) return 'M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z';
+        
+        // Infraestructura y Vías
+        if (Str::contains($n, ['bache', 'paviment', 'hueco', 'calle', 'asfalto'])) return 'M3 13.5h.008v.008H3V13.5zm3 0h.008v.008H6V13.5zm3 0h.008v.008H9V13.5zm3 0h.008v.008H12V13.5zm3 0h.008v.008H15V13.5zm3 0h.008v.008H18V13.5zm-6-3h.008v.008H12V10.5zm3 0h.008v.008H15V10.5zm-6 0h.008v.008H9V10.5zm3-3h.008v.008H12V7.5z';
+        if (Str::contains($n, ['árbol', 'caído', 'maleza', 'monte', 'lote'])) return 'M12 2.25l-.375.375a.75.75 0 01-1.06 0l-.375-.375M12 2.25V21m0-18.75l.375.375a.75.75 0 001.06 0l.375-.375M12 3.75C8.44 3.75 5.23 5.483 3.327 8.16l-.28.39a.75.75 0 00.12.98l.386.31c2.14 1.71 4.97 2.66 7.947 2.66m.5 0c2.977 0 5.807-.95 7.947-2.66l.386-.31a.75.75 0 00.12-.98l-.28-.39C18.77 5.483 15.56 3.75 12 3.75z';
+        if (Str::contains($n, ['drenaje', 'alcantarill', 'agua', 'canal', 'inundación'])) return 'M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z';
+        if (Str::contains($n, ['obstáculo', 'escombro', 'bloqueo'])) return 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636';
+        if (Str::contains($n, ['infraestructura', 'muro', 'daño', 'dañada'])) return 'M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-10.5v10.5';
+        
+        // Seguridad y Convivencia
+        if (Str::contains($n, ['seguridad', 'robo', 'asalto', 'delito', 'policia'])) return 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.74c0 3.321 1.343 6.332 3.523 8.512l.142.141a12.02 12.02 0 0016.67 0l.142-.141A11.99 11.99 0 0021 9.742c0-1.314-.212-2.579-.603-3.763A11.959 11.959 0 0112 2.714z';
+        if (Str::contains($n, ['animal', 'perro', 'gato', 'maltrato', 'suelto'])) return 'M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.111-.777V4.5l-3.29.822a9 9 0 01-6.14-.76l-.178-.089a9 9 0 00-6.235-.744L3 4.5V3z';
         if (Str::contains($n, ['ruido', 'musica', 'fiesta', 'sonido'])) return 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z';
+        if (Str::contains($n, ['comercio', 'vendedor', 'obstrucción', 'puesto'])) return 'M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z';
+        
+        // Limpieza y Medio Ambiente
+        if (Str::contains($n, ['basura', 'limpieza', 'suciedad', 'contenedor'])) return 'M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0';
+        if (Str::contains($n, ['plaga', 'insecto', 'vector'])) return 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z';
+        
         return 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
     };
+@endphp
 @endphp
 
 <div x-data="{ open: false }" 
@@ -86,7 +100,7 @@
                 <form method="POST" 
                       action="{{ route('denuncias.store') }}" 
                       enctype="multipart/form-data" 
-                      id="radar-form"
+                      id="radar-form-el"
                       data-route="{{ route('denuncias.store') }}">
                     @csrf
 
@@ -99,7 +113,8 @@
                              :class="{
                                 'bg-blue-50/50 border-blue-100': status === 'success' && accuracy <= 100, 
                                 'bg-orange-50/50 border-orange-200': status === 'success' && accuracy > 100,
-                                'bg-red-50/50 border-red-100': status === 'error'
+                                'bg-red-50/50 border-red-100': status === 'error',
+                                'bg-slate-50 border-blue-500 ring-2 ring-blue-100': status === 'manual'
                              }">
                             
                             <div class="flex items-center gap-4">
@@ -107,7 +122,7 @@
                                 <div class="relative flex-shrink-0">
                                     <div class="h-12 w-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 transition-colors duration-300"
                                          :class="{
-                                            'text-blue-500': status === 'detecting', 
+                                            'text-blue-500': status === 'detecting' || status === 'manual', 
                                             'text-green-500': status === 'success' && accuracy <= 100, 
                                             'text-orange-500': status === 'success' && accuracy > 100,
                                             'text-red-500': status === 'error'
@@ -115,6 +130,11 @@
                                         
                                         <template x-if="status === 'detecting'">
                                             <svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        </template>
+
+                                        {{-- Icono Manual --}}
+                                        <template x-if="status === 'manual'">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.806-.984l-4.624-.765m0 13v-8m0 0V2.467" /></svg>
                                         </template>
 
                                         {{-- Icono OK --}}
@@ -141,6 +161,7 @@
                                        :class="{
                                            'text-slate-800': status === 'success' && accuracy <= 100,
                                            'text-orange-600': status === 'success' && accuracy > 100,
+                                           'text-blue-700': status === 'manual',
                                            'text-slate-800': status === 'detecting'
                                        }"
                                        x-text="message"></p>
@@ -150,15 +171,44 @@
                                        x-text="coordinates"></p>
                                 </div>
 
-                                {{-- Botón Reintentar (Siempre visible si no está detectando) --}}
-                                <button type="button" x-show="status !== 'detecting'" @click="getLocation()" 
-                                    class="flex-shrink-0 h-9 px-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-xl active:scale-95 transition hover:bg-slate-50 flex items-center gap-1 shadow-sm">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                    Mejorar
-                                </button>
+                                {{-- Botón Reintentar / Manual --}}
+                                <div class="flex flex-col gap-1">
+                                    <button type="button" x-show="status !== 'detecting'" @click="getLocation()" 
+                                        class="flex-shrink-0 h-8 px-2 bg-white border border-slate-200 text-slate-600 text-[9px] font-bold rounded-lg active:scale-95 transition hover:bg-slate-50 flex items-center gap-1 shadow-sm">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                        GPS
+                                    </button>
+                                    <button type="button" x-show="status !== 'detecting'" @click="toggleManual()" 
+                                        class="flex-shrink-0 h-8 px-2 border text-[9px] font-bold rounded-lg active:scale-95 transition flex items-center gap-1 shadow-sm"
+                                        :class="status === 'manual' ? 'bg-blue-600 border-blue-700 text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.806-.984l-4.624-.765m0 13v-8m0 0V2.467" /></svg>
+                                        Mapa
+                                    </button>
+                                </div>
                             </div>
-                            <input type="hidden" name="latitude" x-model="latitude">
-                            <input type="hidden" name="longitude" x-model="longitude">
+
+                            {{-- Mini Mapa para selección manual --}}
+                            <div x-show="status === 'manual'" 
+                                 x-transition:enter="transition ease-out duration-300"
+                                 x-transition:enter-start="opacity-0 max-h-0"
+                                 x-transition:enter-end="opacity-100 max-h-[300px]"
+                                 class="mt-4 border-2 border-blue-100 rounded-2xl overflow-hidden shadow-inner">
+                                <x-map.radar-map 
+                                    :editable="true" 
+                                    height="h-52" 
+                                    latName="manual_lat" 
+                                    lngName="manual_lng" 
+                                />
+                                <div class="bg-blue-50 p-2 text-[9px] font-bold text-blue-600 text-center uppercase tracking-widest">
+                                    Mueve el mapa para fijar el pin azul
+                                </div>
+                            </div>
+                            
+                            {{-- Escuchas de eventos para refrescar el mapa al abrir el modal --}}
+                            <div @open-radar-modal.window="if (status === 'manual') setTimeout(() => window.dispatchEvent(new CustomEvent('map-refresh')), 400)"></div>
+
+                            <input type="hidden" name="latitude" :value="latitude">
+                            <input type="hidden" name="longitude" :value="longitude">
                         </div>
                     </div>
 
@@ -200,26 +250,38 @@
                     </div>
 
                     {{-- 4. FOTOS --}}
-                    <div>
-                        <input type="file" name="fotos[]" id="file" class="hidden" multiple accept="image/*" onchange="previewFiles(this)" data-optional>
-                        <label for="file" class="group flex flex-col items-center justify-center w-full h-24 bg-white border-2 border-dashed border-slate-300 rounded-3xl cursor-pointer hover:border-blue-500 hover:bg-blue-50/30 transition active:scale-[0.98]">
+                    <div x-data="photoManager()">
+                        <input type="file" name="fotos[]" id="file-modal" class="hidden" multiple accept="image/*" @change="handleFiles($event.target.files)">
+                        <label for="file-modal" class="group flex flex-col items-center justify-center w-full h-24 bg-white border-2 border-dashed border-slate-300 rounded-3xl cursor-pointer hover:border-blue-500 hover:bg-blue-50/30 transition active:scale-[0.98]">
                             <div class="flex items-center gap-3">
                                 <div class="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:text-blue-500 group-hover:bg-blue-100 transition">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                 </div>
                                 <div class="text-left">
                                     <p class="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition">Añadir Evidencia</p>
-                                    <p class="text-[10px] text-slate-400 font-medium transition" id="file-label">Máx 5 fotos (Opcional)</p>
+                                    <p class="text-[10px] text-slate-400 font-medium transition" x-text="selectedFiles.length > 0 ? selectedFiles.length + ' foto(s) lista(s)' : 'Máx 5 fotos (Opcional)'"></p>
                                 </div>
                             </div>
                         </label>
+                        
+                        {{-- Previews --}}
+                        <div x-show="previews.length > 0" class="grid grid-cols-5 gap-2 mt-4">
+                            <template x-for="(src, index) in previews" :key="index">
+                                <div class="relative aspect-square rounded-xl overflow-hidden shadow-sm border border-slate-200 group">
+                                    <img :src="src" class="w-full h-full object-cover">
+                                    <button type="button" @click="removePhoto(index)" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </form>
             </div>
 
             {{-- FOOTER --}}
             <div class="absolute bottom-0 left-0 w-full p-5 bg-white/90 backdrop-blur-lg border-t border-slate-100 z-[60]">
-                 <button type="button" onclick="submitRadarForm()" class="w-full bg-slate-900 text-white font-bold text-lg py-4 rounded-2xl shadow-xl shadow-slate-900/20 active:scale-[0.98] hover:bg-black transition-all flex items-center justify-center gap-3">
+                 <button type="button" @click="submitRadarForm($event)" class="w-full bg-slate-900 text-white font-bold text-lg py-4 rounded-2xl shadow-xl shadow-slate-900/20 active:scale-[0.98] hover:bg-black transition-all flex items-center justify-center gap-3">
                     <span>Enviar Reporte</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                 </button>
@@ -235,9 +297,61 @@
                 coordinates: '...',
                 latitude: null,
                 longitude: null,
-                accuracy: 0, // Nueva variable para controlar la calidad
+                accuracy: 0,
 
-                init() { setTimeout(() => this.getLocation(), 500); },
+                init() { 
+                    setTimeout(() => this.getLocation(), 500);
+                    
+                    // Escuchar el movimiento del mapa manual (el ID es dinámico)
+                    window.addEventListener('map-moved', (e) => {
+                        if (this.status === 'manual') {
+                            console.log('Mapa movido detectado en Modal:', e.detail);
+                            this.latitude = e.detail.lat;
+                            this.longitude = e.detail.lng;
+                            this.coordinates = `${parseFloat(this.latitude).toFixed(4)}, ${parseFloat(this.longitude).toFixed(4)}`;
+                        }
+                    });
+
+                    // Limpiar al enviar reporte exitosamente
+                    window.addEventListener('radar-report-sent', () => {
+                        this.getLocation();
+                    });
+                },
+
+                toggleManual() {
+                    if (this.status === 'manual') {
+                        // Si ya está en manual, no hacemos nada o volvemos a detectar si el usuario quiere
+                        return;
+                    }
+                    
+                    this.status = 'manual';
+                    this.message = 'Modo Manual activo';
+                    this.accuracy = 0;
+                    
+                    // Asegurar que si tenemos una ubicación previa (aunque sea imprecisa), el mapa manual empiece ahí
+                    if (this.latitude && this.longitude) {
+                        // El componente mapa escuchará esto si se emite
+                        setTimeout(() => {
+                            window.dispatchEvent(new CustomEvent('map-set-view', { 
+                                detail: { lat: this.latitude, lng: this.longitude } 
+                            }));
+                        }, 100);
+                    }
+
+                    // Forzar refresco del mapa al activar modo manual con varios reintentos
+                    [50, 200, 500].forEach(d => {
+                        setTimeout(() => window.dispatchEvent(new CustomEvent('map-refresh')), d);
+                    });
+
+                    // Intentar obtener centro actual del mapa manual si existe
+                    const latInput = document.querySelector('input[name="manual_lat"]');
+                    const lngInput = document.querySelector('input[name="manual_lng"]');
+                    if (latInput && lngInput && latInput.value) {
+                        this.latitude = latInput.value;
+                        this.longitude = lngInput.value;
+                        this.coordinates = `${parseFloat(this.latitude).toFixed(4)}, ${parseFloat(this.longitude).toFixed(4)}`;
+                    }
+                },
 
                 getLocation() {
                     this.status = 'detecting';
@@ -251,8 +365,8 @@
 
                     const options = {
                         enableHighAccuracy: true,
-                        timeout: 20000, // Le damos 20s para que busque bien
-                        maximumAge: 0   // Prohibido usar caché
+                        timeout: 20000,
+                        maximumAge: 0
                     };
 
                     navigator.geolocation.getCurrentPosition(
@@ -263,9 +377,8 @@
                             
                             this.coordinates = `${this.latitude}, ${this.longitude}`;
                             
-                            // Lógica de Semáforo de Calidad
                             if (this.accuracy > 1000) {
-                                this.message = `Señal GPS muy débil (±${(this.accuracy/1000).toFixed(1)}km)`;
+                                this.message = `Señal débil (±${(this.accuracy/1000).toFixed(1)}km)`;
                             } else if (this.accuracy > 100) {
                                 this.message = `Precisión baja (±${this.accuracy}m)`;
                             } else {
@@ -288,45 +401,98 @@
                 handleError(msg) {
                     this.status = 'error';
                     this.message = msg;
-                    this.coordinates = 'Toca "Mejorar" para reintentar';
+                    this.coordinates = 'Usa el mapa manualmente';
                     this.accuracy = 99999;
                 }
             }
         }
 
-        function previewFiles(input) {
-            const label = document.getElementById('file-label');
-            if (input.files && input.files.length > 0) {
-                label.textContent = `${input.files.length} foto(s) lista(s)`;
-                label.className = 'text-[10px] font-bold text-green-600 transition-colors';
+        // Gestor de fotos global para el componente
+        let globalPhotos = [];
+
+        function photoManager() {
+            return {
+                selectedFiles: [],
+                previews: [],
+
+                handleFiles(files) {
+                    const newFiles = Array.from(files);
+                    const availableSlots = 5 - this.selectedFiles.length;
+                    
+                    if (availableSlots <= 0) {
+                        alert('Máximo 5 fotos permitidas');
+                        return;
+                    }
+
+                    const filesToAdd = newFiles.slice(0, availableSlots);
+                    
+                    filesToAdd.forEach(file => {
+                        if (file.type.startsWith('image/')) {
+                            if (file.size > 5 * 1024 * 1024) {
+                                alert(`La foto "${file.name}" es demasiado grande. Máximo 5MB.`);
+                                return;
+                            }
+                            this.selectedFiles.push(file);
+                            
+                            const reader = new FileReader();
+                            reader.onload = (e) => this.previews.push(e.target.result);
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                    
+                    globalPhotos = this.selectedFiles;
+                },
+
+                removePhoto(index) {
+                    this.selectedFiles.splice(index, 1);
+                    this.previews.splice(index, 1);
+                    globalPhotos = this.selectedFiles;
+                },
+
+                init() {
+                    window.addEventListener('radar-report-sent', () => {
+                        this.selectedFiles = [];
+                        this.previews = [];
+                        globalPhotos = [];
+                    });
+                }
             }
         }
 
-        async function submitRadarForm() {
-            const forms = document.querySelectorAll('#radar-form');
-            let form = null;
-            forms.forEach(f => { if (f.getBoundingClientRect().height > 0) form = f; });
-            if (!form) return;
-
-            // Validación de Precisión GPS antes de enviar
-            // Si quieres ser estricto, descomenta esto:
-            /*
-            const latInput = form.querySelector('input[name="latitude"]');
-            // Hack para leer el scope de Alpine desde fuera (solo si usas window.gpsScope o similar, pero más simple:)
-            // Aquí confiamos en que si hay valor, se envía. Pero el usuario ve la alerta visual.
-            */
+        async function submitRadarForm(event) {
+            console.log('Iniciando envío de reporte...');
+            const form = document.querySelector('#radar-form-el');
+            if (!form) {
+                console.error('No se encontró el formulario #radar-form-el');
+                return;
+            }
 
             const category = form.querySelector('input[name="category_id"]:checked');
             const titulo = form.querySelector('input[name="title"]');
             const descripcion = form.querySelector('textarea[name="description"]');
             const lat = form.querySelector('input[name="latitude"]');
+            const lng = form.querySelector('input[name="longitude"]');
+
+            console.log('Valores del form:', {
+                cat: category?.value,
+                tit: titulo.value,
+                lat: lat.value,
+                lng: lng.value
+            });
 
             if (!category) { alert('⚠️ Selecciona una categoría'); return; }
             if (!titulo.value.trim()) { alert('⚠️ Escribe un título'); titulo.focus(); return; }
-            if (!descripcion.value.trim()) { alert('⚠️ Describe el problema'); descripcion.focus(); return; }
-            if (!lat.value) { alert('🛰️ Esperando señal GPS...'); return; }
+            if (descripcion.value.trim().length < 10) { 
+                alert('⚠️ La descripción debe tener al menos 10 caracteres (llevas ' + descripcion.value.trim().length + ')'); 
+                descripcion.focus(); 
+                return; 
+            }
+            if (!lat.value || lat.value === 'null') { 
+                alert('🛰️ Esperando señal GPS o usa el mapa.\nSi estás en modo manual, mueve el mapa un poco.'); 
+                return; 
+            }
 
-            const submitBtn = form.closest('.relative').querySelector('button[type="button"]');
+            const submitBtn = event.currentTarget;
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg><span>Enviando...</span>';
@@ -335,22 +501,40 @@
             try {
                 const url = form.dataset.route;
                 const formData = new FormData(form);
-                const response = await window.axios.post(url, formData, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                
+                // Limpiar fotos previas en formData si las hay y agregar las de la memoria
+                formData.delete('fotos[]');
+                globalPhotos.forEach(file => {
+                    formData.append('fotos[]', file);
+                });
+
+                const response = await window.axios.post(url, formData, { 
+                    headers: { 
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest' 
+                    } 
+                });
 
                 if (response.data.success) {
+                    console.log('Reporte enviado con éxito:', response.data.report);
                     const report = response.data.report;
                     window.dispatchEvent(new CustomEvent('add-marker-local', { detail: report }));
                     window.dispatchEvent(new CustomEvent('add-card-local', { detail: report }));
                     window.dispatchEvent(new CustomEvent('close-radar-modal'));
-                    form.reset();
-                    const fileLabel = document.getElementById('file-label');
-                    if(fileLabel) { fileLabel.textContent = 'Máx 5 fotos (Opcional)'; fileLabel.className = 'text-[10px] text-slate-400 font-medium'; }
+
+                    // Notificación de éxito
+                    window.dispatchEvent(new CustomEvent('radar-notification', { 
+                        detail: { 
+                            type: 'report', 
+                            title: '¡Reporte Enviado!', 
+                            message: 'Tu denuncia se ha registrado correctamente y ya es visible en el mapa.' 
+                        } 
+                    }));
                     
-                   /* const toast = document.createElement('div');
-                    toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-emerald-500 text-white px-5 py-3 rounded-2xl shadow-2xl shadow-emerald-500/20 text-sm font-bold flex items-center gap-2 animate-bounce';
-                    toast.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Reporte enviado`;
-                    document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 4000);*/
+                    form.reset();
+                    globalPhotos = [];
+                    // Forzar limpieza de Alpine si es necesario mediante un evento
+                    window.dispatchEvent(new CustomEvent('radar-report-sent'));
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -358,7 +542,9 @@
                     const errors = error.response.data.errors;
                     alert(`⚠️ ${Object.values(errors)[0][0]}`);
                 } else {
-                    alert('❌ Error de conexión.');
+                    console.error('Error en la petición:', error.response?.data || error.message);
+                    const msg = error.response?.data?.message || 'Error de conexión.';
+                    alert(`❌ ${msg}`);
                 }
             } finally {
                 if (submitBtn) {

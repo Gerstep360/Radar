@@ -24,10 +24,12 @@ class CommentController extends Controller
                 'content' => $c->content,
                 'is_official' => $c->is_official,
                 'user' => [
+                    'id' => $c->user->id,
                     'name' => $c->user->name,
                     'initial' => substr($c->user->name, 0, 1),
                 ],
                 'created_at' => $c->created_at->diffForHumans(),
+                'created_at_iso' => $c->created_at->toIso8601String(),
             ]);
 
         return response()->json([
@@ -42,23 +44,30 @@ class CommentController extends Controller
      */
     public function store(Request $request, Report $report): JsonResponse
     {
+        // Soporta tanto JSON como form-data; nunca captura el raw body completo
+        $content = $request->input('content');
+
+        $request->merge(['content' => $content]);
+
         $request->validate([
             'content' => 'required|string|min:3|max:500',
         ]);
 
         $user = auth()->user();
-        
+
         // Determinar si es comentario oficial (moderador o admin)
         $isOfficial = $user->hasRole(['admin', 'moderador']);
 
         $comment = Comment::create([
             'user_id' => $user->id,
             'report_id' => $report->id,
-            'content' => $request->content,
+            'content' => $content,
             'is_official' => $isOfficial,
         ]);
 
-        // 🔴 Broadcast en tiempo real
+        $comment->load('user:id,name');
+
+        // Broadcast en tiempo real
         broadcast(new CommentAdded($comment))->toOthers();
 
         return response()->json([
@@ -69,6 +78,7 @@ class CommentController extends Controller
                 'content' => $comment->content,
                 'is_official' => $comment->is_official,
                 'user' => [
+                    'id' => $user->id,
                     'name' => $user->name,
                     'initial' => substr($user->name, 0, 1),
                 ],

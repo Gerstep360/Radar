@@ -31,7 +31,7 @@ class DenunciaController extends Controller
      */
     public function index()
     {
-        abort_unless(auth()->user()->can('ver denuncias'), 403, 'No tienes permiso para ver denuncias.');
+        // All authenticated users can view
 
         $userId = Auth::id();
 
@@ -57,7 +57,7 @@ class DenunciaController extends Controller
      */
     public function create()
     {
-        abort_unless(auth()->user()->can('crear denuncias'), 403, 'No tienes permiso para crear denuncias.');
+        // All authenticated users can create
         
         $categories = Category::orderBy('priority', 'desc')->orderBy('name')->get();
         
@@ -77,7 +77,7 @@ class DenunciaController extends Controller
      */
     public function store(StoreDenunciaRequest $request)
     {
-        abort_unless(auth()->user()->can('crear denuncias'), 403, 'No tienes permiso para crear denuncias.');
+        // All authenticated users can create
 
         $report = $this->denunciaService->crearDenuncia($request->validated());
 
@@ -112,7 +112,7 @@ class DenunciaController extends Controller
      */
     public function show(Report $denuncia)
     {
-        abort_unless(auth()->user()->can('ver denuncias'), 403, 'No tienes permiso para ver esta denuncia.');
+        // All authenticated users can view
         
         $denuncia->loadCount('votes');
         $denuncia->has_voted = $denuncia->hasVotedBy(Auth::id());
@@ -125,7 +125,8 @@ class DenunciaController extends Controller
      */
     public function update(UpdateDenunciaRequest $request, Report $denuncia)
     {
-        abort_unless(auth()->user()->can('gestionar denuncias'), 403, 'No tienes permiso para actualizar denuncias.');
+        $user = auth()->user();
+        abort_unless($user && ($user->isAdmin() || $user->isModerator()), 403, 'No tienes permiso para actualizar denuncias.');
         
         $denuncia->update($request->validated());
 
@@ -140,7 +141,7 @@ class DenunciaController extends Controller
         // La autorización se maneja en el middleware de la ruta (can:cambiarEstado,denuncia)
         
         $validated = request()->validate([
-            'status' => 'required|in:pendiente,en_proceso,atendido,rechazado'
+            'status' => 'required|in:pendiente,en_revision,atendido,desestimado'
         ]);
 
         $this->denunciaService->actualizarEstado($denuncia, $validated['status']);
@@ -155,4 +156,6 @@ class DenunciaController extends Controller
 
         return back()->with('success', 'Estado actualizado a: ' . $validated['status']);
     }
+
+
 }

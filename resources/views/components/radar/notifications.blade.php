@@ -46,32 +46,50 @@
             
             window.Echo.channel('radar')
                 .listen('.report.created', (e) => {
+                    const report = e.report || e;
+                    if (!report || !report.id) return;
+
                     this.addNotification({
                         type: 'report',
                         title: 'Nueva denuncia',
-                        message: e.report?.title || 'Se ha creado una nueva denuncia'
+                        message: report.title || 'Se ha creado una nueva denuncia'
                     });
                 })
                 .listen('.vote.updated', (e) => {
+                    const report = e.report || e;
+                    if (!report || !report.id) return;
+
                     this.addNotification({
                         type: 'vote',
                         title: 'Voto recibido',
-                        message: 'La denuncia ahora tiene ' + (e.votes_count || 0) + ' votos'
+                        message: 'La denuncia ahora tiene ' + (e.votes_count || 0) + ' votos',
+                        id: report.id,
+                        flyTo: { lat: report.latitude, lng: report.longitude }
                     });
                 })
                 .listen('.comment.added', (e) => {
+                    const report = e.report || e;
+                    if (!report || !report.id) return;
+
                     this.addNotification({
                         type: 'comment',
                         title: 'Nuevo comentario',
-                        message: 'Alguien comentó en una denuncia'
+                        message: 'Alguien comentó en una denuncia',
+                        id: report.id,
+                        flyTo: { lat: report.latitude, lng: report.longitude }
                     });
                 })
                 .listen('.report.status-changed', (e) => {
+                    const report = e.report || e;
+                    if (!report || !report.id) return;
+
                     const labels = { pending: 'Pendiente', in_progress: 'En proceso', resolved: 'Resuelto', rejected: 'Rechazado' };
                     this.addNotification({
                         type: 'status',
                         title: 'Estado actualizado',
-                        message: 'La denuncia cambió a: ' + (labels[e.new_status] || e.new_status)
+                        message: 'La denuncia cambió a: ' + (labels[e.new_status] || e.new_status),
+                        id: report.id,
+                        flyTo: { lat: report.latitude, lng: report.longitude }
                     });
                 });
         },
